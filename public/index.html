@@ -40,6 +40,12 @@
             margin-block: 1.5rem 0.5rem;
         }
 
+        .summary-line {
+            margin-block: 0 1rem;
+            color: var(--muted-fg, #666);
+            font-style: italic;
+        }
+
         .children {
             margin-inline-start: 1.25rem;
             padding-inline-start: 1rem;
@@ -215,18 +221,17 @@
             },
             template: `
                 <section class="fold-node">
-                    <template v-if="hasChildren">
-                        <component :is="'h' + headingLevel">{{ node.text }}</component>
-                        <div class="children">
-                            <fold-node
-                                v-for="child in node.children"
-                                :key="child.id"
-                                :node="child"
-                                :level="level + 1"
-                            />
-                        </div>
-                    </template>
+                    <p v-if="node.summary" class="summary-line">{{ node.summary }}</p>
+                    <component v-if="hasChildren" :is="'h' + headingLevel">{{ node.text }}</component>
                     <p v-else>{{ node.text }}</p>
+                    <div v-if="hasChildren" class="children">
+                        <fold-node
+                            v-for="child in node.children"
+                            :key="child.id"
+                            :node="child"
+                            :level="level + 1"
+                        />
+                    </div>
                 </section>
             `,
         };

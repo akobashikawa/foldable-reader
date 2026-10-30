@@ -13,8 +13,8 @@ El formato ya reserva `summary` para la frase alternativa y el demo lo trae pobl
 
 **Incluye:**
 
-- Mostrar la frase alternativa existente al final del texto propio de cada nodo.
-- Un control de texto al final de cada nodo para añadir o editar esa frase.
+- Mostrar la frase alternativa existente antes del texto propio de cada nodo.
+- Un control de texto al inicio de cada nodo para añadir o editar esa frase.
 - Editor inline con `Guardar` y `Cancelar`.
 - Borrar la frase dejando el campo vacío.
 - Feedback inmediato: la frase guardada se ve en cursiva sin recargar.
@@ -45,20 +45,22 @@ Convenciones:
 - `summary` es la frase alternativa del nodo. Cadena vacía significa “sin frase alternativa”.
 - Al guardar se aplica `trim()`; si el resultado es vacío se asigna `''`.
 - `node.text` es inmutable en esta funcionalidad: solo se asigna `node.summary`.
+- Orden de render por nodo: control, frase alternativa (si existe) o editor, texto original, hijos.
+- El texto original nunca se oculta: esto es solo orden visual, no plegado.
 - No hay store paralelo: el nodo vive dentro de `doc` (`ref` profundo) y mutar `node.summary` actualiza la vista.
 - El estado del editor (`editing`, `draft`) es local a cada instancia de `FoldNode`; no se guarda en el documento.
 
 ## Plan de implementación
 
-1. Renderizar la frase alternativa existente: en `FoldNode`, después del encabezado o párrafo propio y antes de `.children`, mostrar `node.summary` como línea en cursiva con clase `.summary-line`. Verificación manual: con `public/texts/demo/demo.json`, los nodos con `summary` muestran su frase y los que no, nada.
-2. Añadir el control y el editor: botón de texto `Añadir frase alternativa` si `summary` está vacío o `Editar frase alternativa` si no; al pulsarlo mostrar un `textarea` con el valor actual y botones `Guardar` / `Cancelar`. Verificación manual: añadir una frase a un nodo sin `summary` la muestra en cursiva al guardar.
+1. Renderizar la frase alternativa existente: en `FoldNode`, antes del encabezado o párrafo propio, mostrar `node.summary` como línea en cursiva con clase `.summary-line`. Verificación manual: con `public/texts/demo/demo.json`, los nodos con `summary` muestran su frase arriba del texto y los que no, nada.
+2. Añadir el control y el editor al inicio del nodo: botón de texto `Añadir frase alternativa` si `summary` está vacío o `Editar frase alternativa` si no; al pulsarlo mostrar, en ese mismo bloque superior, un `textarea` con el valor actual y botones `Guardar` / `Cancelar`. Verificación manual: añadir una frase a un nodo sin `summary` la muestra en cursiva arriba del texto al guardar.
 3. Cerrar la edición: `Guardar` aplica `trim()` y asigna `node.summary`, `Cancelar` descarta el borrador, `Esc` equivale a `Cancelar`, y al cerrar el foco vuelve al control que abrió el editor. Verificación manual: vaciar y guardar elimina la frase y restaura el texto `Añadir…`.
 4. Actualizar `LESSONS.md` con la entrada de la spec 002.
 
 ## Criterios de aceptación
 
-- [ ] Cada nodo muestra el control después de su texto propio, también los que tienen hijos.
-- [ ] Con `demo.json` cargado, los nodos con `summary` muestran su frase en cursiva y los que no muestran `Añadir frase alternativa`.
+- [ ] Cada nodo muestra el control al inicio, antes de su texto propio, también los que tienen hijos.
+- [ ] Con `demo.json` cargado, los nodos con `summary` muestran su frase en cursiva antes del texto y los que no muestran `Añadir frase alternativa`.
 - [ ] Añadir una frase la muestra en cursiva sin recargar la página.
 - [ ] Editar abre el editor con la frase actual precargada.
 - [ ] Vaciar y guardar elimina la frase y el control vuelve a `Añadir frase alternativa`.
@@ -72,8 +74,9 @@ Convenciones:
 
 - **Sí:** editar `node.summary` en lugar de crear un mapa auxiliar `summaries[nodeId]`. El campo ya existe en el modelo y un store paralelo sería abstracción antes de tiempo.
 - **Sí:** mutar el nodo dentro de `doc`. Es un `ref` profundo de Vue y evita propagar eventos o duplicar estado.
-- **Sí:** control después del texto propio y antes de los hijos. Queda junto al texto que describe y no se pierde al final de un subárbol largo.
+- **Sí:** control y frase antes del texto propio, en un bloque superior del nodo. Es el orden pedido: la frase resume lo que viene y el original queda visible debajo.
 - **Sí:** mostrar la frase guardada como línea en cursiva. Da confirmación visual y prepara el plegado sin implementarlo.
+- **No:** ocultar o colapsar el texto original en esta spec. Eso es plegado y va en la spec siguiente.
 - **Sí:** `Guardar` y `Cancelar` explícitos, con `Esc` para cancelar. Evita que un clic accidental fuera del campo guarde cambios no deseados.
 - **Sí:** `textarea`. La frase puede ser más larga que una línea y el ajuste de texto es más legible que en un `input`.
 - **No:** autoguardado al perder el foco. Complica explicar el descarte y el borrado.
