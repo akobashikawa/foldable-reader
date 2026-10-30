@@ -150,7 +150,40 @@
             };
         }
 
+        const FoldNode = {
+            name: 'FoldNode',
+            props: {
+                node: { type: Object, required: true },
+                level: { type: Number, default: 2 },
+            },
+            computed: {
+                headingLevel() {
+                    return Math.min(this.level, 3);
+                },
+                hasChildren() {
+                    return this.node.children.length > 0;
+                },
+            },
+            template: `
+                <section class="fold-node">
+                    <template v-if="hasChildren">
+                        <component :is="'h' + headingLevel">{{ node.text }}</component>
+                        <div class="children">
+                            <fold-node
+                                v-for="child in node.children"
+                                :key="child.id"
+                                :node="child"
+                                :level="level + 1"
+                            />
+                        </div>
+                    </template>
+                    <p v-else>{{ node.text }}</p>
+                </section>
+            `,
+        };
+
         createApp({
+            components: { FoldNode },
             setup() {
                 const doc = ref(null);
                 const error = ref('');
