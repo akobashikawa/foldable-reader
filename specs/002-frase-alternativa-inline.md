@@ -59,18 +59,18 @@ Convenciones:
 
 ## Criterios de aceptación
 
-- [ ] Cada nodo muestra un control con emoji, también los que tienen hijos.
-- [ ] Con `demo.json` cargado, los nodos con `summary` muestran la frase en cursiva antes del texto, con el `✏️` después de la frase; los que no tienen frase muestran solo el `📝` antes del texto.
-- [ ] El `aria-label` y el `title` del control dicen `Editar frase alternativa` cuando hay frase y `Añadir frase alternativa` cuando no.
-- [ ] Añadir una frase la muestra en cursiva sin recargar la página.
-- [ ] Editar abre el editor con la frase actual precargada.
-- [ ] Vaciar por completo y guardar elimina la frase; queda solo el `📝` antes del texto.
-- [ ] Una frase de solo espacios se guarda como frase válida: aparece el `summary-line` (vacío a la vista) con su `✏️`.
-- [ ] `Cancelar` y `Esc` descartan los cambios del borrador.
-- [ ] El texto original (`text`) no cambia en ningún caso.
-- [ ] Reabrir el mismo JSON restaura los `summary` del archivo: lo editado no persiste.
-- [ ] Un `summary` con `<script>` o `&lt;` se muestra literal, sin ejecutarse.
-- [ ] Funciona abriendo `public/index.html` directamente (`file://`), sin servidor.
+- [x] Cada nodo muestra un control con emoji, también los que tienen hijos.
+- [x] Con `demo.json` cargado, los nodos con `summary` muestran la frase en cursiva antes del texto, con el `✏️` después de la frase; los que no tienen frase muestran solo el `📝` antes del texto.
+- [x] El `aria-label` y el `title` del control dicen `Editar frase alternativa` cuando hay frase y `Añadir frase alternativa` cuando no.
+- [x] Añadir una frase la muestra en cursiva sin recargar la página.
+- [x] Editar abre el editor con la frase actual precargada.
+- [x] Vaciar por completo y guardar elimina la frase; queda solo el `📝` antes del texto.
+- [x] Una frase de solo espacios se guarda como frase válida: aparece el `summary-line` (vacío a la vista) con su `✏️`.
+- [x] `Cancelar` y `Esc` descartan los cambios del borrador.
+- [x] El texto original (`text`) no cambia en ningún caso.
+- [x] Reabrir el mismo JSON restaura los `summary` del archivo: lo editado no persiste.
+- [x] Un `summary` con `<script>` o `&lt;` se muestra literal, sin ejecutarse.
+- [x] Funciona abriendo `public/index.html` directamente (`file://`), sin servidor.
 
 ## Decisiones
 
