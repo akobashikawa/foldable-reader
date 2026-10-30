@@ -7,21 +7,288 @@
     <!-- Matcha.css CDN -->
     <link rel="stylesheet" href="https://matcha.mizu.sh/matcha.css">
     <style>
-        
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-block-end: 1.5rem;
+        }
+
+        .reader {
+            max-width: 68ch;
+            margin-inline: auto;
+            padding: 2rem 1.25rem 4rem;
+            line-height: 1.7;
+        }
+
+        .reader > h1 {
+            margin-block-end: 0.25rem;
+        }
+
+        .author {
+            color: var(--muted-fg, #666);
+            margin-block: 0 1.5rem;
+            font-style: italic;
+        }
+
+        .fold-node > p {
+            margin-block: 0 1rem;
+        }
+
+        .fold-node h2,
+        .fold-node h3 {
+            margin-block: 1.5rem 0.5rem;
+        }
+
+        .children {
+            margin-inline-start: 1.25rem;
+            padding-inline-start: 1rem;
+            border-inline-start: 1px solid rgba(128, 128, 128, 0.3);
+        }
+
+        /* Matcha.css estiliza input[type=file], así que [hidden] no basta. */
+        .file-input {
+            display: none;
+        }
+
+        .empty {
+            color: var(--muted-fg, #666);
+            font-style: italic;
+        }
+
+        .notice {
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            background: color-mix(in srgb, currentColor 8%, transparent);
+        }
+
+        .notice-error {
+            border-inline-start: 4px solid #c0392b;
+        }
     </style>
 </head>
 <body>
-    <div id="app"></div>
+    <div id="app">
+        <main class="reader">
+            <div class="toolbar">
+                <button type="button" :disabled="loading" @click="pickFile">
+                    {{ loading ? 'Cargando…' : 'Abrir JSON' }}
+                </button>
+                <input
+                    ref="fileInput"
+                    class="file-input"
+                    type="file"
+                    accept=".json,application/json"
+                    @change="onFileChange"
+                >
+            </div>
+
+            <p v-if="error" class="notice notice-error" role="alert">{{ error }}</p>
+
+            <p v-if="!doc && !error" class="empty">Aún no hay texto. Abre un archivo JSON.</p>
+
+            <template v-if="doc">
+                <h1>{{ doc.title }}</h1>
+                <p v-if="doc.author" class="author">{{ doc.author }}</p>
+
+                <p v-if="doc.nodes.length === 0" class="notice">
+                    El documento no tiene contenido.
+                </p>
+
+                <fold-node
+                    v-for="node in doc.nodes"
+                    :key="node.id"
+                    :node="node"
+                    :level="2"
+                />
+            </template>
+        </main>
+    </div>
 
     <!-- Vue 3 CDN -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script>
         const { createApp, ref } = Vue;
 
-        createApp({
-            setup() {
-                
+        /**
+         * Devuelve { doc } si el JSON es válido o { error } con un mensaje en español.
+         * No lanza excepciones: el llamador solo muestra el resultado.
+         */
+        function validateDoc(raw) {
+            if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
+                return { error: 'El JSON debe ser un objeto con los campos title y nodes.' };
             }
+
+            if (raw.version !== undefined && raw.version !== 1) {
+                return { error: `Versión no soportada: ${JSON.stringify(raw.version)}. Este lector admite la versión 1.` };
+            }
+
+            if (typeof raw.title !== 'string' || !raw.title.trim()) {
+                return { error: 'El campo title es obligatorio y no puede estar vacío.' };
+            }
+
+            if (raw.author !== undefined && typeof raw.author !== 'string') {
+                return { error: 'El campo author debe ser texto.' };
+            }
+
+            if (!Array.isArray(raw.nodes)) {
+                return { error: 'El campo nodes es obligatorio y debe ser una lista.' };
+            }
+
+            const problem = findNodeProblem(raw.nodes, 'nodes');
+            if (problem) {
+                return { error: problem };
+            }
+
+            return {
+                doc: {
+                    title: raw.title,
+                    author: raw.author || '',
+                    nodes: raw.nodes.map((node, index) => normalizeNode(node, `node-${index}`)),
+                },
+            };
+        }
+
+        function findNodeProblem(nodes, path) {
+            for (let index = 0; index < nodes.length; index += 1) {
+                const node = nodes[index];
+                const here = `${path}[${index}]`;
+
+                if (node === null || typeof node !== 'object' || Array.isArray(node)) {
+                    return `El nodo ${here} debe ser un objeto.`;
+                }
+
+                if (typeof node.text !== 'string' || !node.text.trim()) {
+                    return `El campo ${here}.text es obligatorio y no puede estar vacío.`;
+                }
+
+                if (node.id !== undefined && typeof node.id !== 'string') {
+                    return `El campo ${here}.id debe ser texto.`;
+                }
+
+                if (node.summary !== undefined && typeof node.summary !== 'string') {
+                    return `El campo ${here}.summary debe ser texto.`;
+                }
+
+                if (node.children !== undefined) {
+                    if (!Array.isArray(node.children)) {
+                        return `El campo ${here}.children debe ser una lista.`;
+                    }
+
+                    const childProblem = findNodeProblem(node.children, `${here}.children`);
+                    if (childProblem) {
+                        return childProblem;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /**
+         * Copia solo los campos conocidos y asigna un id estable a los nodos que no lo traen.
+         */
+        function normalizeNode(node, fallbackId) {
+            return {
+                id: node.id ? node.id : fallbackId,
+                text: node.text,
+                summary: typeof node.summary === 'string' ? node.summary : '',
+                children: (node.children || []).map((child, index) =>
+                    normalizeNode(child, `${fallbackId}-${index}`)
+                ),
+            };
+        }
+
+        const FoldNode = {
+            name: 'FoldNode',
+            props: {
+                node: { type: Object, required: true },
+                level: { type: Number, default: 2 },
+            },
+            computed: {
+                headingLevel() {
+                    return Math.min(this.level, 3);
+                },
+                hasChildren() {
+                    return this.node.children.length > 0;
+                },
+            },
+            template: `
+                <section class="fold-node">
+                    <template v-if="hasChildren">
+                        <component :is="'h' + headingLevel">{{ node.text }}</component>
+                        <div class="children">
+                            <fold-node
+                                v-for="child in node.children"
+                                :key="child.id"
+                                :node="child"
+                                :level="level + 1"
+                            />
+                        </div>
+                    </template>
+                    <p v-else>{{ node.text }}</p>
+                </section>
+            `,
+        };
+
+        createApp({
+            components: { FoldNode },
+            setup() {
+                const doc = ref(null);
+                const error = ref('');
+                const loading = ref(false);
+                const fileInput = ref(null);
+
+                function pickFile() {
+                    fileInput.value?.click();
+                }
+
+                async function readFile(file) {
+                    const text = await file.text();
+
+                    if (!text.trim()) {
+                        return { error: 'El archivo está vacío.' };
+                    }
+
+                    let raw;
+                    try {
+                        raw = JSON.parse(text);
+                    } catch {
+                        return { error: 'El archivo no es JSON válido.' };
+                    }
+
+                    return validateDoc(raw);
+                }
+
+                async function onFileChange(event) {
+                    const file = event.target.files?.[0];
+                    if (!file) {
+                        return;
+                    }
+
+                    loading.value = true;
+                    error.value = '';
+
+                    try {
+                        const result = await readFile(file);
+
+                        if (result.error) {
+                            error.value = result.error;
+                        } else {
+                            doc.value = result.doc;
+                            window.scrollTo({ top: 0 });
+                        }
+                    } catch {
+                        error.value = 'No se pudo leer el archivo.';
+                    } finally {
+                        loading.value = false;
+                        // Permite volver a elegir el mismo archivo.
+                        event.target.value = '';
+                    }
+                }
+
+                return { doc, error, loading, fileInput, pickFile, onFileChange };
+            },
         }).mount('#app');
     </script>
 </body>

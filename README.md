@@ -19,6 +19,7 @@
 
 - `public/index.html`: toda la aplicación (HTML, CSS y JS embebidos).
 - `public/` es la raíz de despliegue: solo contiene archivos estáticos listos para publicar. La documentación (`README.md`, `LESSONS.md`, `AGENTS.md`) queda fuera de esa carpeta.
+- `specs/`: una especificación por funcionalidad (`NNN-nombre.md`), escrita antes de implementar. Las reglas del flujo están en `specs/.spec-config.yml` y en `.agents/skills/`.
 - Para probar localmente, servir esa carpeta: `python3 -m http.server --directory public`.
 
 ## Metodología de desarrollo

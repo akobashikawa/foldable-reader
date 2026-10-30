@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "title": "Demo: El faro",
+  "author": "Foldable Reader",
+  "nodes": [
+    {
+      "id": "cap-1",
+      "text": "Capítulo 1. La tormenta",
+      "summary": "Una tormenta obliga a Elías a refugiarse en el faro.",
+      "children": [
+        {
+          "id": "cap-1-p1",
+          "text": "El viento golpeaba las ventanas desde el mediodía. Elías miró el cielo, cerró la puerta y subió al faro antes de que cayera el primer rayo.",
+          "summary": "Elías sube al faro al comenzar la tormenta."
+        },
+        {
+          "id": "cap-1-p2",
+          "text": "Arriba, la lámpara seguía encendida. La luz giraba sobre el mar como un dedo que buscara algo perdido entre las olas."
+        }
+      ]
+    },
+    {
+      "id": "cap-2",
+      "text": "Capítulo 2. La luz",
+      "summary": "Elías descubre que la luz del faro guía a un barco que no aparece en los mapas.",
+      "children": [
+        {
+          "id": "cap-2-p1",
+          "text": "Al amanecer la tormenta había pasado. Elías encontró unas huellas mojadas que subían desde la playa hasta la puerta del faro.",
+          "summary": "Aparecen huellas que llegan desde el mar."
+        },
+        {
+          "id": "cap-2-p2",
+          "text": "Esa noche la luz volvió a girar, pero esta vez alguien respondió desde el agua con una señal diminuta y constante."
+        }
+      ]
+    },
+    {
+      "id": "nota-final",
+      "text": "Texto de demostración creado para probar la carga de JSON y el render jerárquico del lector."
+    }
+  ]
+}
