@@ -91,8 +91,13 @@
                 return { error: problem };
             }
 
-            // La normalización de nodos llega en el paso 3.
-            return { doc: raw };
+            return {
+                doc: {
+                    title: raw.title,
+                    author: raw.author || '',
+                    nodes: raw.nodes.map((node, index) => normalizeNode(node, `node-${index}`)),
+                },
+            };
         }
 
         function findNodeProblem(nodes, path) {
@@ -129,6 +134,20 @@
             }
 
             return null;
+        }
+
+        /**
+         * Copia solo los campos conocidos y asigna un id estable a los nodos que no lo traen.
+         */
+        function normalizeNode(node, fallbackId) {
+            return {
+                id: node.id ? node.id : fallbackId,
+                text: node.text,
+                summary: typeof node.summary === 'string' ? node.summary : '',
+                children: (node.children || []).map((child, index) =>
+                    normalizeNode(child, `${fallbackId}-${index}`)
+                ),
+            };
         }
 
         createApp({
