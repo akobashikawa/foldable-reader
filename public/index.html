@@ -270,21 +270,30 @@
                 startEdit() {
                     this.draft = this.node.summary;
                     this.editing = true;
+                    this.$nextTick(() => this.$refs.editor?.focus());
                 },
                 saveEdit() {
-                    this.node.summary = this.draft.trim();
+                    this.node.summary = this.draft;
                     this.editing = false;
+                    this.$nextTick(() => this.$refs.toggle?.focus());
                 },
                 cancelEdit() {
                     this.draft = '';
                     this.editing = false;
+                    this.$nextTick(() => this.$refs.toggle?.focus());
                 },
             },
             template: `
                 <section class="fold-node">
                     <div class="node-head">
                         <form v-if="editing" class="summary-editor" @submit.prevent="saveEdit">
-                            <textarea v-model="draft" rows="2" aria-label="Frase alternativa"></textarea>
+                            <textarea
+                                ref="editor"
+                                v-model="draft"
+                                rows="2"
+                                aria-label="Frase alternativa"
+                                @keydown.esc.prevent="cancelEdit"
+                            ></textarea>
                             <div class="summary-actions">
                                 <button type="submit">Guardar</button>
                                 <button type="button" @click="cancelEdit">Cancelar</button>
@@ -294,6 +303,7 @@
                             <p v-if="node.summary" class="summary-line">
                                 {{ node.summary }}
                                 <button
+                                    ref="toggle"
                                     type="button"
                                     class="summary-edit"
                                     :aria-label="editLabel"
@@ -303,6 +313,7 @@
                             </p>
                             <button
                                 v-else
+                                ref="toggle"
                                 type="button"
                                 class="summary-edit"
                                 :aria-label="editLabel"

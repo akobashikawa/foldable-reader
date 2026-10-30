@@ -42,8 +42,8 @@ Esta spec no introduce estructuras nuevas. Reutiliza el modelo de SPEC 001 y le 
 
 Convenciones:
 
-- `summary` es la frase alternativa del nodo. Cadena vacía significa “sin frase alternativa”.
-- Al guardar se aplica `trim()`; si el resultado es vacío se asigna `''`.
+- `summary` es la frase alternativa del nodo. `''` (campo completamente vacío) significa “sin frase alternativa”.
+- Al guardar se conserva el texto tal cual, sin `trim()`. Un valor de solo espacios es una frase válida.
 - `node.text` es inmutable en esta funcionalidad: solo se asigna `node.summary`.
 - Orden de render por nodo: frase alternativa con el control `✏️` al final (o solo el control `📝` si no hay frase) o editor, texto original, hijos.
 - El texto original nunca se oculta: esto es solo orden visual, no plegado.
@@ -54,7 +54,7 @@ Convenciones:
 
 1. Renderizar la frase alternativa existente: en `FoldNode`, antes del encabezado o párrafo propio, mostrar `node.summary` como línea en cursiva con clase `.summary-line`. Verificación manual: con `public/texts/demo/demo.json`, los nodos con `summary` muestran su frase arriba del texto y los que no, nada.
 2. Añadir el control y el editor: el control va al final de la frase cuando existe (`✏️`) y solo, antes del texto, cuando no (`📝`); su `aria-label` y su `title` son `Editar frase alternativa` o `Añadir frase alternativa` según corresponda. Al pulsarlo mostrar, en ese mismo bloque superior, un `textarea` con el valor actual y botones `Guardar` / `Cancelar`. Verificación manual: añadir una frase a un nodo sin `summary` la muestra en cursiva arriba del texto al guardar.
-3. Cerrar la edición: `Guardar` aplica `trim()` y asigna `node.summary`, `Cancelar` descarta el borrador, `Esc` equivale a `Cancelar`, y al cerrar el foco vuelve al control que abrió el editor. Verificación manual: vaciar y guardar elimina la frase y restaura el texto `Añadir…`.
+3. Cerrar la edición: `Guardar` asigna el texto tal cual (sin `trim()`), `Cancelar` descarta el borrador, `Esc` equivale a `Cancelar`, y al cerrar el foco vuelve al control que abrió el editor. Para quitar la frase hay que dejar el campo completamente vacío. Verificación manual: vaciar del todo y guardar elimina la frase; un texto de solo espacios se conserva como frase.
 4. Actualizar `LESSONS.md` con la entrada de la spec 002.
 
 ## Criterios de aceptación
@@ -64,7 +64,8 @@ Convenciones:
 - [ ] El `aria-label` y el `title` del control dicen `Editar frase alternativa` cuando hay frase y `Añadir frase alternativa` cuando no.
 - [ ] Añadir una frase la muestra en cursiva sin recargar la página.
 - [ ] Editar abre el editor con la frase actual precargada.
-- [ ] Vaciar y guardar elimina la frase; queda solo el `📝` antes del texto.
+- [ ] Vaciar por completo y guardar elimina la frase; queda solo el `📝` antes del texto.
+- [ ] Una frase de solo espacios se guarda como frase válida: aparece el `summary-line` (vacío a la vista) con su `✏️`.
 - [ ] `Cancelar` y `Esc` descartan los cambios del borrador.
 - [ ] El texto original (`text`) no cambia en ningún caso.
 - [ ] Reabrir el mismo JSON restaura los `summary` del archivo: lo editado no persiste.
@@ -80,6 +81,7 @@ Convenciones:
 - **Sí:** control y frase antes del texto propio, en un bloque superior del nodo. La frase resume lo que viene y el original queda visible debajo.
 - **Sí:** mostrar la frase guardada como línea en cursiva. Da confirmación visual y prepara el plegado sin implementarlo.
 - **No:** ocultar o colapsar el texto original en esta spec. Eso es plegado y va en la spec siguiente.
+- **Sí:** guardar el borrador tal cual, sin `trim()`. Una frase de solo espacios es válida; la cadena vacía queda reservada para borrar.
 - **Sí:** `Guardar` y `Cancelar` explícitos, con `Esc` para cancelar. Evita que un clic accidental fuera del campo guarde cambios no deseados.
 - **Sí:** `textarea`. La frase puede ser más larga que una línea y el ajuste de texto es más legible que en un `input`.
 - **No:** autoguardado al perder el foco. Complica explicar el descarte y el borrado.
