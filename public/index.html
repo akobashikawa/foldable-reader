@@ -47,12 +47,29 @@
                     class="file-input"
                     type="file"
                     accept=".json,application/json"
+                    @change="onFileChange"
                 >
             </div>
 
             <p v-if="error" class="notice notice-error" role="alert">{{ error }}</p>
 
             <p v-if="!doc && !error" class="empty">Aún no hay texto. Abre un archivo JSON.</p>
+
+            <template v-if="doc">
+                <h1>{{ doc.title }}</h1>
+                <p v-if="doc.author" class="author">{{ doc.author }}</p>
+
+                <p v-if="doc.nodes.length === 0" class="notice">
+                    El documento no tiene contenido.
+                </p>
+
+                <fold-node
+                    v-for="node in doc.nodes"
+                    :key="node.id"
+                    :node="node"
+                    :level="2"
+                />
+            </template>
         </main>
     </div>
 
@@ -194,7 +211,51 @@
                     fileInput.value?.click();
                 }
 
-                return { doc, error, loading, fileInput, pickFile };
+                async function readFile(file) {
+                    const text = await file.text();
+
+                    if (!text.trim()) {
+                        return { error: 'El archivo está vacío.' };
+                    }
+
+                    let raw;
+                    try {
+                        raw = JSON.parse(text);
+                    } catch {
+                        return { error: 'El archivo no es JSON válido.' };
+                    }
+
+                    return validateDoc(raw);
+                }
+
+                async function onFileChange(event) {
+                    const file = event.target.files?.[0];
+                    if (!file) {
+                        return;
+                    }
+
+                    loading.value = true;
+                    error.value = '';
+
+                    try {
+                        const result = await readFile(file);
+
+                        if (result.error) {
+                            error.value = result.error;
+                        } else {
+                            doc.value = result.doc;
+                            window.scrollTo({ top: 0 });
+                        }
+                    } catch {
+                        error.value = 'No se pudo leer el archivo.';
+                    } finally {
+                        loading.value = false;
+                        // Permite volver a elegir el mismo archivo.
+                        event.target.value = '';
+                    }
+                }
+
+                return { doc, error, loading, fileInput, pickFile, onFileChange };
             },
         }).mount('#app');
     </script>
