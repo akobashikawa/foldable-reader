@@ -14,7 +14,7 @@ El formato ya reserva `summary` para la frase alternativa y el demo lo trae pobl
 **Incluye:**
 
 - Mostrar la frase alternativa existente antes del texto propio de cada nodo.
-- Un control de texto al inicio de cada nodo para añadir o editar esa frase.
+- Un control con emoji (`✏️` para editar, `📝` para añadir) después de la frase, o al inicio del nodo cuando todavía no hay frase.
 - Editor inline con `Guardar` y `Cancelar`.
 - Borrar la frase dejando el campo vacío.
 - Feedback inmediato: la frase guardada se ve en cursiva sin recargar.
@@ -45,7 +45,7 @@ Convenciones:
 - `summary` es la frase alternativa del nodo. Cadena vacía significa “sin frase alternativa”.
 - Al guardar se aplica `trim()`; si el resultado es vacío se asigna `''`.
 - `node.text` es inmutable en esta funcionalidad: solo se asigna `node.summary`.
-- Orden de render por nodo: control, frase alternativa (si existe) o editor, texto original, hijos.
+- Orden de render por nodo: frase alternativa con el control `✏️` al final (o solo el control `📝` si no hay frase) o editor, texto original, hijos.
 - El texto original nunca se oculta: esto es solo orden visual, no plegado.
 - No hay store paralelo: el nodo vive dentro de `doc` (`ref` profundo) y mutar `node.summary` actualiza la vista.
 - El estado del editor (`editing`, `draft`) es local a cada instancia de `FoldNode`; no se guarda en el documento.
@@ -53,17 +53,18 @@ Convenciones:
 ## Plan de implementación
 
 1. Renderizar la frase alternativa existente: en `FoldNode`, antes del encabezado o párrafo propio, mostrar `node.summary` como línea en cursiva con clase `.summary-line`. Verificación manual: con `public/texts/demo/demo.json`, los nodos con `summary` muestran su frase arriba del texto y los que no, nada.
-2. Añadir el control y el editor al inicio del nodo: botón de texto `Añadir frase alternativa` si `summary` está vacío o `Editar frase alternativa` si no; al pulsarlo mostrar, en ese mismo bloque superior, un `textarea` con el valor actual y botones `Guardar` / `Cancelar`. Verificación manual: añadir una frase a un nodo sin `summary` la muestra en cursiva arriba del texto al guardar.
+2. Añadir el control y el editor: el control va al final de la frase cuando existe (`✏️`) y solo, antes del texto, cuando no (`📝`); su `aria-label` y su `title` son `Editar frase alternativa` o `Añadir frase alternativa` según corresponda. Al pulsarlo mostrar, en ese mismo bloque superior, un `textarea` con el valor actual y botones `Guardar` / `Cancelar`. Verificación manual: añadir una frase a un nodo sin `summary` la muestra en cursiva arriba del texto al guardar.
 3. Cerrar la edición: `Guardar` aplica `trim()` y asigna `node.summary`, `Cancelar` descarta el borrador, `Esc` equivale a `Cancelar`, y al cerrar el foco vuelve al control que abrió el editor. Verificación manual: vaciar y guardar elimina la frase y restaura el texto `Añadir…`.
 4. Actualizar `LESSONS.md` con la entrada de la spec 002.
 
 ## Criterios de aceptación
 
-- [ ] Cada nodo muestra el control al inicio, antes de su texto propio, también los que tienen hijos.
-- [ ] Con `demo.json` cargado, los nodos con `summary` muestran su frase en cursiva antes del texto y los que no muestran `Añadir frase alternativa`.
+- [ ] Cada nodo muestra un control con emoji, también los que tienen hijos.
+- [ ] Con `demo.json` cargado, los nodos con `summary` muestran la frase en cursiva antes del texto, con el `✏️` después de la frase; los que no tienen frase muestran solo el `📝` antes del texto.
+- [ ] El `aria-label` y el `title` del control dicen `Editar frase alternativa` cuando hay frase y `Añadir frase alternativa` cuando no.
 - [ ] Añadir una frase la muestra en cursiva sin recargar la página.
 - [ ] Editar abre el editor con la frase actual precargada.
-- [ ] Vaciar y guardar elimina la frase y el control vuelve a `Añadir frase alternativa`.
+- [ ] Vaciar y guardar elimina la frase; queda solo el `📝` antes del texto.
 - [ ] `Cancelar` y `Esc` descartan los cambios del borrador.
 - [ ] El texto original (`text`) no cambia en ningún caso.
 - [ ] Reabrir el mismo JSON restaura los `summary` del archivo: lo editado no persiste.
@@ -74,7 +75,9 @@ Convenciones:
 
 - **Sí:** editar `node.summary` en lugar de crear un mapa auxiliar `summaries[nodeId]`. El campo ya existe en el modelo y un store paralelo sería abstracción antes de tiempo.
 - **Sí:** mutar el nodo dentro de `doc`. Es un `ref` profundo de Vue y evita propagar eventos o duplicar estado.
-- **Sí:** control y frase antes del texto propio, en un bloque superior del nodo. Es el orden pedido: la frase resume lo que viene y el original queda visible debajo.
+- **Sí:** control `✏️` al final de la frase, o solo antes del texto si no hay frase. Queda junto a lo que edita y no compite con el texto.
+- **Sí:** dos emojis con `aria-label` y `title`: `✏️` para editar una frase existente y `📝` para añadir una nueva. El dibujo comunica la acción a simple vista y el nombre accesible conserva el significado para lectores de pantalla y mouseover.
+- **Sí:** control y frase antes del texto propio, en un bloque superior del nodo. La frase resume lo que viene y el original queda visible debajo.
 - **Sí:** mostrar la frase guardada como línea en cursiva. Da confirmación visual y prepara el plegado sin implementarlo.
 - **No:** ocultar o colapsar el texto original en esta spec. Eso es plegado y va en la spec siguiente.
 - **Sí:** `Guardar` y `Cancelar` explícitos, con `Esc` para cancelar. Evita que un clic accidental fuera del campo guarde cambios no deseados.
