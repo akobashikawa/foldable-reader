@@ -1,6 +1,6 @@
 # SPEC 001 — Cargar texto estructurado desde JSON
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** —
 > **Fecha:** 2026-10-30
 > **Objetivo:** Permitir que el usuario elija un JSON con texto estructurado y lo vea renderizado en pantalla, sin recargar la página ni usar servidor.
@@ -76,14 +76,14 @@ Convenciones:
 
 ## Criterios de aceptación
 
-- [ ] Cargar el ejemplo del spec muestra título, autor y el árbol de nodos en orden.
-- [ ] Cambiar de archivo reemplaza el contenido anterior.
-- [ ] Un JSON inválido muestra un error claro y conserva lo que ya estaba en pantalla.
-- [ ] Un archivo con `version: 2` muestra error de versión.
-- [ ] Un `nodes: []` muestra el título y un aviso de documento sin contenido.
-- [ ] El texto con `<script>` o `&lt;` se muestra literal, sin ejecutarse.
-- [ ] Funciona abriendo `public/index.html` directamente (`file://`), sin servidor.
-- [ ] Un nodo con `text` vacío produce un error que indica su ruta exacta.
+- [x] Cargar el ejemplo del spec muestra título, autor y el árbol de nodos en orden.
+- [x] Cambiar de archivo reemplaza el contenido anterior.
+- [x] Un JSON inválido muestra un error claro y conserva lo que ya estaba en pantalla.
+- [x] Un archivo con `version: 2` muestra error de versión.
+- [x] Un `nodes: []` muestra el título y un aviso de documento sin contenido.
+- [x] El texto con `<script>` o `&lt;` se muestra literal, sin ejecutarse.
+- [x] Funciona abriendo `public/index.html` directamente (`file://`), sin servidor.
+- [x] Un nodo con `text` vacío produce un error que indica su ruta exacta.
 
 ## Decisiones
 
