@@ -40,6 +40,50 @@
             margin-block: 1.5rem 0.5rem;
         }
 
+        .node-head {
+            margin-block-end: 0.25rem;
+        }
+
+        .fold-node > .summary-line {
+            margin-block: 0 0.5rem;
+            color: var(--muted-fg, #666);
+            font-style: italic;
+        }
+
+        .summary-edit {
+            display: inline-block;
+            padding: 0 0.15rem;
+            border: 0;
+            background: none;
+            font: inherit;
+            font-size: 0.9em;
+            line-height: 1;
+            opacity: 0.6;
+            cursor: pointer;
+        }
+
+        .summary-edit:hover,
+        .summary-edit:focus-visible {
+            opacity: 1;
+        }
+
+        .summary-editor {
+            display: grid;
+            gap: 0.5rem;
+            margin-block-end: 0.5rem;
+        }
+
+        .summary-editor textarea {
+            width: 100%;
+            padding: 0.5rem;
+            font: inherit;
+        }
+
+        .summary-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
         .children {
             margin-inline-start: 1.25rem;
             padding-inline-start: 1rem;
@@ -212,21 +256,82 @@
                 hasChildren() {
                     return this.node.children.length > 0;
                 },
+                editLabel() {
+                    return this.node.summary ? 'Editar frase alternativa' : 'Añadir frase alternativa';
+                },
+                editIcon() {
+                    return this.node.summary ? '✏️' : '📝';
+                },
+            },
+            data() {
+                return { editing: false, draft: '' };
+            },
+            methods: {
+                startEdit() {
+                    this.draft = this.node.summary;
+                    this.editing = true;
+                    this.$nextTick(() => this.$refs.editor?.focus());
+                },
+                saveEdit() {
+                    this.node.summary = this.draft;
+                    this.editing = false;
+                    this.$nextTick(() => this.$refs.toggle?.focus());
+                },
+                cancelEdit() {
+                    this.draft = '';
+                    this.editing = false;
+                    this.$nextTick(() => this.$refs.toggle?.focus());
+                },
             },
             template: `
                 <section class="fold-node">
-                    <template v-if="hasChildren">
-                        <component :is="'h' + headingLevel">{{ node.text }}</component>
-                        <div class="children">
-                            <fold-node
-                                v-for="child in node.children"
-                                :key="child.id"
-                                :node="child"
-                                :level="level + 1"
-                            />
-                        </div>
-                    </template>
+                    <div class="node-head">
+                        <form v-if="editing" class="summary-editor" @submit.prevent="saveEdit">
+                            <textarea
+                                ref="editor"
+                                v-model="draft"
+                                rows="2"
+                                aria-label="Frase alternativa"
+                                @keydown.esc.prevent="cancelEdit"
+                            ></textarea>
+                            <div class="summary-actions">
+                                <button type="submit">Guardar</button>
+                                <button type="button" @click="cancelEdit">Cancelar</button>
+                            </div>
+                        </form>
+                        <template v-else>
+                            <p v-if="node.summary" class="summary-line">
+                                {{ node.summary }}
+                                <button
+                                    ref="toggle"
+                                    type="button"
+                                    class="summary-edit"
+                                    :aria-label="editLabel"
+                                    :title="editLabel"
+                                    @click="startEdit"
+                                >{{ editIcon }}</button>
+                            </p>
+                            <button
+                                v-else
+                                ref="toggle"
+                                type="button"
+                                class="summary-edit"
+                                :aria-label="editLabel"
+                                :title="editLabel"
+                                @click="startEdit"
+                            >{{ editIcon }}</button>
+                        </template>
+                    </div>
+                    <component v-if="hasChildren" :is="'h' + headingLevel">{{ node.text }}</component>
                     <p v-else>{{ node.text }}</p>
+                    <div v-if="hasChildren" class="children">
+                        <fold-node
+                            v-for="child in node.children"
+                            :key="child.id"
+                            :node="child"
+                            :level="level + 1"
+                        />
+                    </div>
                 </section>
             `,
         };
