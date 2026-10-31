@@ -1,6 +1,6 @@
 # SPEC 003 — Plegado por frase alternativa y gestos con clic
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 001, SPEC 002
 > **Fecha:** 2026-10-30
 > **Objetivo:** Permitir que todo nodo con frase alternativa arranque plegado mostrando solo la frase, y alternar o editar con clic y doble clic.
