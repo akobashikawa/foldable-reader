@@ -26,7 +26,7 @@
 - Un botón con solo emoji necesita nombre accesible: `aria-label` y `title` con el texto real. Sin eso el lector de pantalla anuncia el nombre Unicode del emoji.
 - `✏️` para editar y `📝` para añadir no son intercambiables: el dibujo comunica la acción antes de leer el `title`.
 - Matcha.css estiliza `button`; un botón de emoji sin caja se logra pisando `background`, `border`, `padding` y `font`, no con `appearance: none`.
-- La regla `.fold-node > p` tiene más especificidad que `.summary-line` y le ganaba el margen. La solución fue `.fold-node > .summary-line` en lugar de subir con `!important`.
+- Al mover un elemento dentro de un wrapper cambia el alcance de los selectores: `.fold-node > .summary-line` dejó de coincidir cuando la frase pasó a estar dentro de `.node-head`, y la cursiva y el color atenuado desaparecieron sin error visible. El arreglo fue `.node-head > .summary-line`; no era un problema de especificidad.
 - Sin `trim()` a propósito: una frase de solo espacios es válida y la cadena vacía queda reservada para borrar. Cualquier recorte silencioso haría desaparecer frases que el usuario quiso guardar así.
 - El orden “frase arriba, original abajo” es solo visual. Ocultar el original ya es plegado y pertenece a otra spec; mezclarlo acá habría cambiado el alcance a mitad de camino.
 - Cambiar de opinión durante la implementación se paga barato si el cambio se refleja en la spec en el mismo commit: orden, emojis y `trim` quedaron documentados junto al código.
@@ -42,4 +42,23 @@
 - En este entorno Playwright no dispara `requestAnimationFrame` de forma estable y sus clics normales se quedan esperando “estable”. Se verifica con `click({ force: true })` sobre elementos que ya se comprobó que están visibles y en el tope del hit-test.
 - Las transiciones CSS tampoco avanzan en ese navegador: `getComputedStyle` devuelve el valor inicial aunque pasen segundos. Se quitó la transición de `opacity` para que el estado sea inmediato y verificable; con `transition: none` los valores coincidían, así que el problema era el frame, no el selector.
 - Para probar el HTML literal, cargar un JSON de prueba cuyo `summary` contenga `<script>` y comprobar que aparece el texto y que no se ejecuta nada.
+
+## 003 — Plegado por frase alternativa
+
+- Plegar es estado de sesión: `expanded` local en cada `FoldNode`, y `isFolded = summary !== '' && !expanded`. No va al JSON ni a `doc`.
+- Para el contenido plegado conviene `v-if` y no CSS: un subárbol que no se ve no debe existir en el DOM, o quedarían botones enfocables dentro de contenido invisible.
+- El plegado inicial de todos los niveles reduce el árbol renderizado: con el demo quedan 3 secciones visibles, no 7. Los criterios de conteo tienen que hablar de lo que se renderiza, no de todos los nodos del JSON.
+- La frase y el caret son un `<button>` real, y el `✏️` es un botón hermano. Eso evita botones anidados y da teclado gratis (`Enter`/espacio) sin listeners extra.
+- El clic del `✏️` no dispara el de alternar porque son hermanos, no ancestro y descendiente. Agregar `.stop` “por las dudas” bloquea además la activación del nodo y esconde los iconos.
+- `aria-expanded` en el botón de alternar y `aria-hidden` en el caret: el estado se anuncia y el nombre accesible queda limpio, solo con la frase.
+- Un doble clic dispara antes dos `click`: el plegado se ejecuta dos veces y vuelve al estado inicial. Después, `dblclick` fuerza `expanded = true` y abre el editor; hacerlo idempotente evita depender de si el nodo estaba plegado.
+- El foco visible del botón de alternar se declara a mano. El reset de `border`/`background` y el estilo de Matcha no garantizan un anillo legible.
+- Los errores de alcance del CSS no avisan: `.fold-node > .summary-line` no coincidía desde que la frase vive dentro de `.node-head`, y la cursiva había desaparecido sin error. Conviene leer `getComputedStyle` cada vez que se mueve el DOM.
+
+### Verificación
+
+- `page.mouse` usa coordenadas del viewport. Para nodos fuera de pantalla hay que scrollear antes con `el.scrollIntoView()` por `evaluate`; `scrollIntoViewIfNeeded` también espera “estable” y se cuelga en este entorno.
+- El doble clic se prueba con `page.mouse.dblclick` sobre el centro del `boundingBox`, no con `locator.dblclick`, por el mismo motivo.
+- El plegado se verifica sobre el DOM: cantidad de `.fold-node`, presencia de `h2`/`.children`, `aria-expanded` y el carácter del caret.
+
 

@@ -62,19 +62,19 @@ Convenciones:
 
 ## Criterios de aceptación
 
-- [ ] Con `demo.json`, los nodos de nivel superior con `summary` (`cap-1`, `cap-2`) aparecen plegados con su frase y caret `▸`; `nota-final`, sin `summary`, muestra su texto y no tiene caret.
-- [ ] Un capítulo plegado no muestra su encabezado ni sus hijos.
-- [ ] Al desplegar un capítulo aparecen su encabezado y sus hijos, y cada hijo con frase sigue plegado.
-- [ ] Un clic en la frase alterna plegado/desplegado y el caret cambia entre `▸` y `▾`.
-- [ ] Un clic en `✏️` o `📝` abre el editor y no alterna el plegado.
-- [ ] Un doble clic en la frase la deja desplegada y abre el editor con su frase y foco en el `textarea`.
-- [ ] Un doble clic en un párrafo sin `summary` abre el editor vacío para añadir la frase.
-- [ ] Un doble clic en el texto de un nodo desplegado con frase abre el editor con esa frase.
-- [ ] Guardar una frase deja el nodo expandido; borrarla lo vuelve no plegable.
-- [ ] Con teclado, `Enter` sobre el botón de la frase alterna y `aria-expanded` refleja el estado.
-- [ ] `text` no cambia en ningún caso.
-- [ ] El plegado no persiste: al reabrir el JSON todo vuelve al estado plegado inicial.
-- [ ] Funciona abriendo `public/index.html` directamente (`file://`), sin servidor.
+- [x] Con `demo.json`, los nodos de nivel superior con `summary` (`cap-1`, `cap-2`) aparecen plegados con su frase y caret `▸`; `nota-final`, sin `summary`, muestra su texto y no tiene caret.
+- [x] Un capítulo plegado no muestra su encabezado ni sus hijos.
+- [x] Al desplegar un capítulo aparecen su encabezado y sus hijos, y cada hijo con frase sigue plegado.
+- [x] Un clic en la frase alterna plegado/desplegado y el caret cambia entre `▸` y `▾`.
+- [x] Un clic en `✏️` o `📝` abre el editor y no alterna el plegado.
+- [x] Un doble clic en la frase la deja desplegada y abre el editor con su frase y foco en el `textarea`.
+- [x] Un doble clic en un párrafo sin `summary` abre el editor vacío para añadir la frase.
+- [x] Un doble clic en el texto de un nodo desplegado con frase abre el editor con esa frase.
+- [x] Guardar una frase deja el nodo expandido; borrarla lo vuelve no plegable.
+- [x] Con teclado, `Enter` sobre el botón de la frase alterna y `aria-expanded` refleja el estado.
+- [x] `text` no cambia en ningún caso.
+- [x] El plegado no persiste: al reabrir el JSON todo vuelve al estado plegado inicial.
+- [x] Funciona abriendo `public/index.html` directamente (`file://`), sin servidor.
 
 ## Decisiones
 
