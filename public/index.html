@@ -314,6 +314,10 @@
                 toggleFold() {
                     this.expanded = !this.expanded;
                 },
+                expandAndEdit() {
+                    this.expanded = true;
+                    this.startEdit();
+                },
                 startEdit() {
                     this.draft = this.node.summary;
                     this.editing = true;
@@ -354,6 +358,7 @@
                                     class="summary-toggle"
                                     :aria-expanded="expanded ? 'true' : 'false'"
                                     @click="toggleFold"
+                                    @dblclick="expandAndEdit"
                                 >
                                     <span class="summary-caret">{{ expanded ? '▾' : '▸' }}</span>
                                     <span class="summary-text">{{ node.summary }}</span>
@@ -379,8 +384,8 @@
                         </template>
                     </div>
                     <template v-if="showContent">
-                        <component v-if="hasChildren" :is="'h' + headingLevel">{{ node.text }}</component>
-                        <p v-else>{{ node.text }}</p>
+                        <component v-if="hasChildren" :is="'h' + headingLevel" @dblclick="startEdit">{{ node.text }}</component>
+                        <p v-else @dblclick="startEdit">{{ node.text }}</p>
                         <div v-if="hasChildren" class="children">
                             <fold-node
                                 v-for="child in node.children"
