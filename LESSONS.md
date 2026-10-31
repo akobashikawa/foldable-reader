@@ -30,10 +30,16 @@
 - Sin `trim()` a propósito: una frase de solo espacios es válida y la cadena vacía queda reservada para borrar. Cualquier recorte silencioso haría desaparecer frases que el usuario quiso guardar así.
 - El orden “frase arriba, original abajo” es solo visual. Ocultar el original ya es plegado y pertenece a otra spec; mezclarlo acá habría cambiado el alcance a mitad de camino.
 - Cambiar de opinión durante la implementación se paga barato si el cambio se refleja en la spec en el mismo commit: orden, emojis y `trim` quedaron documentados junto al código.
+- Ocultar un control con `opacity: 0` y no con `display: none` deja el espacio reservado, mantiene el orden de tabulación y permite que `:focus-visible` lo revele. El precio es que sigue existiendo para el lector de pantalla, que es justo lo que se busca.
+- El hover de un ancestro se activa también al pasar por sus descendientes. Para encender solo el icono del nodo apuntado hay que mirar hijos directos: `:has(> .node-head:hover, > h2:hover, > p:hover)`. Un `.fold-node:hover` a secas encendería también los iconos de los hijos.
+- Para el clic hay un ida y vuelta que se pisa si falta una pieza: el `section` activa y hace `.stop`, y un listener de `document` apaga todo. Sin `.stop`, el mismo clic que activa llega al documento y apaga el nodo en el acto.
+- Un único `activeId` en el root es más simple que un booleano por componente: garantiza que haya como máximo un nodo encendido y que el clic fuera apague todo sin recorrer el árbol.
+- Para la verificación conviene leer `getComputedStyle(boton).opacity` en cada estado: reposo (`0`), hover (`0.6`), activo (`0.6`) y foco de teclado (`1`).
 
 ### Verificación
 
 - `$nextTick` y el foco se comprueban con `document.activeElement` (`tagName` y `aria-label`), no con capturas.
 - En este entorno Playwright no dispara `requestAnimationFrame` de forma estable y sus clics normales se quedan esperando “estable”. Se verifica con `click({ force: true })` sobre elementos que ya se comprobó que están visibles y en el tope del hit-test.
+- Las transiciones CSS tampoco avanzan en ese navegador: `getComputedStyle` devuelve el valor inicial aunque pasen segundos. Se quitó la transición de `opacity` para que el estado sea inmediato y verificable; con `transition: none` los valores coincidían, así que el problema era el frame, no el selector.
 - Para probar el HTML literal, cargar un JSON de prueba cuyo `summary` contenga `<script>` y comprobar que aparece el texto y que no se ejecuta nada.
 

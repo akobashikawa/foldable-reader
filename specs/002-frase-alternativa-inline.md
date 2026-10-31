@@ -1,6 +1,6 @@
 # SPEC 002 — Establecer la frase alternativa de un nodo
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 001
 > **Fecha:** 2026-10-30
 > **Objetivo:** Permitir que el usuario escriba, edite o borre la frase alternativa (`summary`) de cada nodo desde el propio lector, sin tocar el texto original.
@@ -15,6 +15,7 @@ El formato ya reserva `summary` para la frase alternativa y el demo lo trae pobl
 
 - Mostrar la frase alternativa existente antes del texto propio de cada nodo.
 - Un control con emoji (`✏️` para editar, `📝` para añadir) después de la frase, o al inicio del nodo cuando todavía no hay frase.
+- Iconos ocultos por defecto: se muestran al pasar el mouse por el texto propio del nodo, al hacer clic/tap en el nodo o al recibir foco por teclado; se ocultan al hacer clic fuera.
 - Editor inline con `Guardar` y `Cancelar`.
 - Borrar la frase dejando el campo vacío.
 - Feedback inmediato: la frase guardada se ve en cursiva sin recargar.
@@ -49,13 +50,18 @@ Convenciones:
 - El texto original nunca se oculta: esto es solo orden visual, no plegado.
 - No hay store paralelo: el nodo vive dentro de `doc` (`ref` profundo) y mutar `node.summary` actualiza la vista.
 - El estado del editor (`editing`, `draft`) es local a cada instancia de `FoldNode`; no se guarda en el documento.
+- El nodo activo no se duplica por componente: el root guarda un único `activeId` y cada `FoldNode` recibe `activeId` como prop y calcula `isActive`.
+- El clic dentro de un nodo usa `.stop`: activa ese nodo y evita que el listener de `document` apague el estado.
+- Un clic fuera de cualquier nodo vuelve a poner `activeId = null`.
+- El hover se resuelve solo con CSS (`:has()` sobre los hijos directos del `section`); no hay estado de hover en Vue.
 
 ## Plan de implementación
 
 1. Renderizar la frase alternativa existente: en `FoldNode`, antes del encabezado o párrafo propio, mostrar `node.summary` como línea en cursiva con clase `.summary-line`. Verificación manual: con `public/texts/demo/demo.json`, los nodos con `summary` muestran su frase arriba del texto y los que no, nada.
 2. Añadir el control y el editor: el control va al final de la frase cuando existe (`✏️`) y solo, antes del texto, cuando no (`📝`); su `aria-label` y su `title` son `Editar frase alternativa` o `Añadir frase alternativa` según corresponda. Al pulsarlo mostrar, en ese mismo bloque superior, un `textarea` con el valor actual y botones `Guardar` / `Cancelar`. Verificación manual: añadir una frase a un nodo sin `summary` la muestra en cursiva arriba del texto al guardar.
 3. Cerrar la edición: `Guardar` asigna el texto tal cual (sin `trim()`), `Cancelar` descarta el borrador, `Esc` equivale a `Cancelar`, y al cerrar el foco vuelve al control que abrió el editor. Para quitar la frase hay que dejar el campo completamente vacío. Verificación manual: vaciar del todo y guardar elimina la frase; un texto de solo espacios se conserva como frase.
-4. Actualizar `LESSONS.md` con la entrada de la spec 002.
+4. Visibilidad progresiva: los iconos nacen con `opacity: 0`; se revelan con hover sobre el texto propio del nodo (`:has()` y `@media (hover: hover)`), con el foco de teclado (`:focus-visible`) o cuando el nodo está activo (`is-active`). El clic en el `section` emite `activate` con el id y detiene la propagación; un listener de `document` limpia `activeId` en los clics fuera. Verificación manual: pasar el mouse por un párrafo, hacer clic y luego clic fuera.
+5. Actualizar `LESSONS.md` con la entrada de la spec 002.
 
 ## Criterios de aceptación
 
@@ -71,6 +77,11 @@ Convenciones:
 - [x] Reabrir el mismo JSON restaura los `summary` del archivo: lo editado no persiste.
 - [x] Un `summary` con `<script>` o `&lt;` se muestra literal, sin ejecutarse.
 - [x] Funciona abriendo `public/index.html` directamente (`file://`), sin servidor.
+- [x] En reposo todos los iconos tienen `opacity: 0`.
+- [x] El hover sobre el texto propio del nodo muestra su icono; el hover sobre un nodo hijo no enciende el icono del padre.
+- [x] Un clic/tap en el nodo lo deja activo aunque el mouse se vaya; un clic en otro nodo mueve el activo y un clic fuera apaga todos.
+- [x] El foco por teclado muestra el icono.
+- [x] Cargar otro documento apaga el nodo activo.
 
 ## Decisiones
 
@@ -82,6 +93,11 @@ Convenciones:
 - **Sí:** mostrar la frase guardada como línea en cursiva. Da confirmación visual y prepara el plegado sin implementarlo.
 - **No:** ocultar o colapsar el texto original en esta spec. Eso es plegado y va en la spec siguiente.
 - **Sí:** guardar el borrador tal cual, sin `trim()`. Una frase de solo espacios es válida; la cadena vacía queda reservada para borrar.
+- **Sí:** iconos ocultos por defecto con `opacity: 0` en vez de `display: none` o `visibility: hidden`. Conservan el espacio, el orden de tabulación y el nombre accesible.
+- **Sí:** un único `activeId` en el root en vez de un `revealed` por componente. Evita que varios nodos queden encendidos y hace trivial el “clic fuera apaga todos”.
+- **Sí:** `.stop` en el clic del nodo. Sin él, el mismo clic llegaría al listener de `document` y apagaría el nodo recién activado.
+- **Sí:** hover con `:has()` en CSS. No necesita estado reactivo ni eventos por nodo, y el selector con hijos directos evita encender los iconos de los descendientes.
+- **No:** transición de `opacity`. El cambio inmediato es suficiente y no depende de frames ni animaciones; además el estado se puede verificar con `getComputedStyle`.
 - **Sí:** `Guardar` y `Cancelar` explícitos, con `Esc` para cancelar. Evita que un clic accidental fuera del campo guarde cambios no deseados.
 - **Sí:** `textarea`. La frase puede ser más larga que una línea y el ajuste de texto es más legible que en un `input`.
 - **No:** autoguardado al perder el foco. Complica explicar el descarte y el borrado.

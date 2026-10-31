@@ -58,13 +58,27 @@
             font: inherit;
             font-size: 0.9em;
             line-height: 1;
-            opacity: 0.6;
+            opacity: 0;
             cursor: pointer;
         }
 
-        .summary-edit:hover,
+        .summary-edit:hover {
+            opacity: 1;
+        }
+
         .summary-edit:focus-visible {
             opacity: 1;
+        }
+
+        .fold-node.is-active > .node-head .summary-edit {
+            opacity: 0.6;
+        }
+
+        @media (hover: hover) {
+            .fold-node:has(> .node-head:hover, > h2:hover, > h3:hover, > p:not(.summary-line):hover)
+                > .node-head .summary-edit {
+                opacity: 0.6;
+            }
         }
 
         .summary-editor {
@@ -144,6 +158,8 @@
                     :key="node.id"
                     :node="node"
                     :level="2"
+                    :active-id="activeId"
+                    @activate="activeId = $event"
                 />
             </template>
         </main>
@@ -152,7 +168,7 @@
     <!-- Vue 3 CDN -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script>
-        const { createApp, ref } = Vue;
+        const { createApp, ref, onMounted } = Vue;
 
         /**
          * Devuelve { doc } si el JSON es válido o { error } con un mensaje en español.
@@ -248,6 +264,7 @@
             props: {
                 node: { type: Object, required: true },
                 level: { type: Number, default: 2 },
+                activeId: { type: String, default: null },
             },
             computed: {
                 headingLevel() {
@@ -255,6 +272,9 @@
                 },
                 hasChildren() {
                     return this.node.children.length > 0;
+                },
+                isActive() {
+                    return this.activeId === this.node.id;
                 },
                 editLabel() {
                     return this.node.summary ? 'Editar frase alternativa' : 'Añadir frase alternativa';
@@ -267,6 +287,9 @@
                 return { editing: false, draft: '' };
             },
             methods: {
+                activate() {
+                    this.$emit('activate', this.node.id);
+                },
                 startEdit() {
                     this.draft = this.node.summary;
                     this.editing = true;
@@ -284,7 +307,7 @@
                 },
             },
             template: `
-                <section class="fold-node">
+                <section class="fold-node" :class="{ 'is-active': isActive }" @click.stop="activate">
                     <div class="node-head">
                         <form v-if="editing" class="summary-editor" @submit.prevent="saveEdit">
                             <textarea
@@ -330,6 +353,8 @@
                             :key="child.id"
                             :node="child"
                             :level="level + 1"
+                            :active-id="activeId"
+                            @activate="$emit('activate', $event)"
                         />
                     </div>
                 </section>
@@ -343,6 +368,15 @@
                 const error = ref('');
                 const loading = ref(false);
                 const fileInput = ref(null);
+                const activeId = ref(null);
+
+                onMounted(() => {
+                    // Los clics dentro de un nodo usan .stop, así que solo
+                    // llegan aquí los clics fuera de cualquier nodo.
+                    document.addEventListener('click', () => {
+                        activeId.value = null;
+                    });
+                });
 
                 function pickFile() {
                     fileInput.value?.click();
@@ -381,6 +415,7 @@
                             error.value = result.error;
                         } else {
                             doc.value = result.doc;
+                            activeId.value = null;
                             window.scrollTo({ top: 0 });
                         }
                     } catch {
@@ -392,7 +427,7 @@
                     }
                 }
 
-                return { doc, error, loading, fileInput, pickFile, onFileChange };
+                return { doc, error, loading, fileInput, activeId, pickFile, onFileChange };
             },
         }).mount('#app');
     </script>
