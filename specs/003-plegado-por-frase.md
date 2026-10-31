@@ -54,7 +54,7 @@ Convenciones:
 
 ## Plan de implementación
 
-1. Plegado inicial: añadir `expanded: false` y los derivados `isFolded`/`showContent`; envolver texto propio y `.children` en `v-if="showContent"`; mostrar caret `▸` junto a la frase. Verificación manual: con `demo.json`, los 4 nodos con `summary` muestran solo su frase y los 3 sin `summary` muestran su texto.
+1. Plegado inicial: añadir `expanded: false` y los derivados `isFolded`/`showContent`; envolver texto propio y `.children` en `v-if="showContent"`; mostrar caret `▸` junto a la frase. Verificación manual: con `demo.json`, los nodos de nivel superior con `summary` muestran solo su frase y ocultan su subárbol; `nota-final`, sin `summary`, muestra su texto.
 2. Alternar con clic: convertir la frase y el caret en un `<button>` con `@click="toggleFold"`, `aria-expanded` y caret `▸`/`▾`; añadir `@click.stop` al `✏️`/`📝` para que no alterne. Verificación manual: clic en una frase pliega y despliega sin abrir el editor.
 3. Doble clic: `@dblclick` en el botón de la frase hace `expanded = true` y `startEdit()`; `@dblclick` en el texto propio llama a `startEdit()` con el `summary` actual (o vacío si no tiene). Verificación manual: doble clic en una frase pliega y abre el editor; doble clic en un párrafo sin frase abre “añadir”.
 4. Estilos y accesibilidad: caret sin caja, `cursor: pointer`, foco visible del botón de alternar y ajuste de la línea del summary con dos botones. Verificación manual con teclado: `Tab` hasta la frase, `Enter` alterna y `aria-expanded` cambia.
@@ -62,7 +62,7 @@ Convenciones:
 
 ## Criterios de aceptación
 
-- [ ] Con `demo.json`, los 4 nodos con `summary` aparecen plegados y muestran solo su frase con caret `▸`; los 3 sin `summary` muestran su texto y no tienen caret.
+- [ ] Con `demo.json`, los nodos de nivel superior con `summary` (`cap-1`, `cap-2`) aparecen plegados con su frase y caret `▸`; `nota-final`, sin `summary`, muestra su texto y no tiene caret.
 - [ ] Un capítulo plegado no muestra su encabezado ni sus hijos.
 - [ ] Al desplegar un capítulo aparecen su encabezado y sus hijos, y cada hijo con frase sigue plegado.
 - [ ] Un clic en la frase alterna plegado/desplegado y el caret cambia entre `▸` y `▾`.

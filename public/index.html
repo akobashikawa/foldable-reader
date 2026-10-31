@@ -50,6 +50,11 @@
             font-style: italic;
         }
 
+        .summary-caret {
+            color: var(--muted-fg, #666);
+            margin-inline-end: 0.15rem;
+        }
+
         .summary-edit {
             display: inline-block;
             padding: 0 0.15rem;
@@ -282,9 +287,15 @@
                 editIcon() {
                     return this.node.summary ? '✏️' : '📝';
                 },
+                isFolded() {
+                    return this.node.summary !== '' && !this.expanded;
+                },
+                showContent() {
+                    return !this.isFolded;
+                },
             },
             data() {
-                return { editing: false, draft: '' };
+                return { editing: false, draft: '', expanded: false };
             },
             methods: {
                 activate() {
@@ -297,6 +308,7 @@
                 },
                 saveEdit() {
                     this.node.summary = this.draft;
+                    this.expanded = true;
                     this.editing = false;
                     this.$nextTick(() => this.$refs.toggle?.focus());
                 },
@@ -324,6 +336,7 @@
                         </form>
                         <template v-else>
                             <p v-if="node.summary" class="summary-line">
+                                <span class="summary-caret">▸</span>
                                 {{ node.summary }}
                                 <button
                                     ref="toggle"
@@ -345,18 +358,20 @@
                             >{{ editIcon }}</button>
                         </template>
                     </div>
-                    <component v-if="hasChildren" :is="'h' + headingLevel">{{ node.text }}</component>
-                    <p v-else>{{ node.text }}</p>
-                    <div v-if="hasChildren" class="children">
-                        <fold-node
-                            v-for="child in node.children"
-                            :key="child.id"
-                            :node="child"
-                            :level="level + 1"
-                            :active-id="activeId"
-                            @activate="$emit('activate', $event)"
-                        />
-                    </div>
+                    <template v-if="showContent">
+                        <component v-if="hasChildren" :is="'h' + headingLevel">{{ node.text }}</component>
+                        <p v-else>{{ node.text }}</p>
+                        <div v-if="hasChildren" class="children">
+                            <fold-node
+                                v-for="child in node.children"
+                                :key="child.id"
+                                :node="child"
+                                :level="level + 1"
+                                :active-id="activeId"
+                                @activate="$emit('activate', $event)"
+                            />
+                        </div>
+                    </template>
                 </section>
             `,
         };
