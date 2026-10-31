@@ -55,7 +55,7 @@ Convenciones:
 ## Plan de implementación
 
 1. Plegado inicial: añadir `expanded: false` y los derivados `isFolded`/`showContent`; envolver texto propio y `.children` en `v-if="showContent"`; mostrar caret `▸` junto a la frase. Verificación manual: con `demo.json`, los nodos de nivel superior con `summary` muestran solo su frase y ocultan su subárbol; `nota-final`, sin `summary`, muestra su texto.
-2. Alternar con clic: convertir la frase y el caret en un `<button>` con `@click="toggleFold"`, `aria-expanded` y caret `▸`/`▾`; añadir `@click.stop` al `✏️`/`📝` para que no alterne. Verificación manual: clic en una frase pliega y despliega sin abrir el editor.
+2. Alternar con clic: convertir la frase y el caret en un `<button class="summary-toggle">` con `@click="toggleFold"`, `aria-expanded` y caret `▸`/`▾`. El `✏️`/`📝` queda como botón hermano: su clic no dispara el del botón de alternar. Verificación manual: clic en una frase pliega y despliega sin abrir el editor.
 3. Doble clic: `@dblclick` en el botón de la frase hace `expanded = true` y `startEdit()`; `@dblclick` en el texto propio llama a `startEdit()` con el `summary` actual (o vacío si no tiene). Verificación manual: doble clic en una frase pliega y abre el editor; doble clic en un párrafo sin frase abre “añadir”.
 4. Estilos y accesibilidad: caret sin caja, `cursor: pointer`, foco visible del botón de alternar y ajuste de la línea del summary con dos botones. Verificación manual con teclado: `Tab` hasta la frase, `Enter` alterna y `aria-expanded` cambia.
 5. Actualizar `LESSONS.md` con la entrada de la spec 003.

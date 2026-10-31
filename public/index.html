@@ -55,6 +55,16 @@
             margin-inline-end: 0.15rem;
         }
 
+        .summary-toggle {
+            padding: 0;
+            border: 0;
+            background: none;
+            color: inherit;
+            font: inherit;
+            text-align: start;
+            cursor: pointer;
+        }
+
         .summary-edit {
             display: inline-block;
             padding: 0 0.15rem;
@@ -301,6 +311,9 @@
                 activate() {
                     this.$emit('activate', this.node.id);
                 },
+                toggleFold() {
+                    this.expanded = !this.expanded;
+                },
                 startEdit() {
                     this.draft = this.node.summary;
                     this.editing = true;
@@ -336,8 +349,15 @@
                         </form>
                         <template v-else>
                             <p v-if="node.summary" class="summary-line">
-                                <span class="summary-caret">▸</span>
-                                {{ node.summary }}
+                                <button
+                                    type="button"
+                                    class="summary-toggle"
+                                    :aria-expanded="expanded ? 'true' : 'false'"
+                                    @click="toggleFold"
+                                >
+                                    <span class="summary-caret">{{ expanded ? '▾' : '▸' }}</span>
+                                    <span class="summary-text">{{ node.summary }}</span>
+                                </button>
                                 <button
                                     ref="toggle"
                                     type="button"
